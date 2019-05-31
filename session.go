@@ -2172,6 +2172,7 @@ type Pipe struct {
 	pipeline   interface{}
 	allowDisk  bool
 	batchSize  int
+	hint       interface{}
 }
 
 type pipeCmd struct {
@@ -2180,6 +2181,7 @@ type pipeCmd struct {
 	Cursor    *pipeCmdCursor ",omitempty"
 	Explain   bool           ",omitempty"
 	AllowDisk bool           "allowDiskUse,omitempty"
+	Hint      interface{}
 }
 
 type pipeCmdCursor struct {
@@ -2233,6 +2235,7 @@ func (p *Pipe) Iter() *Iter {
 		Pipeline:  p.pipeline,
 		AllowDisk: p.allowDisk,
 		Cursor:    &pipeCmdCursor{p.batchSize},
+		Hint:      p.hint,
 	}
 	err := c.Database.Run(cmd, &result)
 	if e, ok := err.(*QueryError); ok && e.Message == `unrecognized field "cursor` {
@@ -2350,6 +2353,7 @@ func (p *Pipe) Explain(result interface{}) error {
 		Pipeline:  p.pipeline,
 		AllowDisk: p.allowDisk,
 		Explain:   true,
+		Hint:      p.hint,
 	}
 	return c.Database.Run(cmd, result)
 }
@@ -2368,6 +2372,17 @@ func (p *Pipe) AllowDiskUse() *Pipe {
 // The default batch size is defined by the database server.
 func (p *Pipe) Batch(n int) *Pipe {
 	p.batchSize = n
+	return p
+}
+
+// Hint The index to use for the aggregation. The index is on the initial collection/view against which the aggregation is run.
+// Specify the index either by the index name or by the index specification document.
+func (p *Pipe) Hint(indexKey ...string) *Pipe {
+	keyInfo, err := parseIndexKey(indexKey)
+	if err != nil {
+		panic(err)
+	}
+	p.hint = keyInfo.key
 	return p
 }
 
