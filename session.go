@@ -2181,7 +2181,7 @@ type pipeCmd struct {
 	Cursor    *pipeCmdCursor ",omitempty"
 	Explain   bool           ",omitempty"
 	AllowDisk bool           "allowDiskUse,omitempty"
-	Hint      interface{}
+	Hint      interface{}    ",omitempty"
 }
 
 type pipeCmdCursor struct {
